@@ -6,10 +6,12 @@
 //  Copyright © 2016 Wenchao Ding. All rights reserved.
 //
 
-#import "FSCalendarWeekdayView.h"
 #import "FSCalendar.h"
-#import "FSCalendarDynamicHeader.h"
+#import "NSLocale+Category.h"
+#import "NSString+Category.h"
 #import "FSCalendarExtensions.h"
+#import "FSCalendarWeekdayView.h"
+#import "FSCalendarDynamicHeader.h"
 
 @interface FSCalendarWeekdayView()
 
@@ -69,18 +71,12 @@
     CGFloat contentWidth = self.contentView.fs_width;
     FSCalendarSliceCake(contentWidth, count, widths);
     
-    BOOL opposite = NO;
-    if (@available(iOS 9.0, *)) {
-        UIUserInterfaceLayoutDirection direction = [UIView userInterfaceLayoutDirectionForSemanticContentAttribute:self.calendar.semanticContentAttribute];
-        opposite = (direction == UIUserInterfaceLayoutDirectionRightToLeft);
-    }
     CGFloat x = 0;
     for (NSInteger i = 0; i < count; i++) {
         CGFloat width = widths[i];
-        NSInteger labelIndex = opposite ? count-1-i : i;
-        UILabel *label = [self.weekdayPointers pointerAtIndex:labelIndex];
+        UILabel *label = [self.weekdayPointers pointerAtIndex:i];
         label.frame = CGRectMake(x, 0, width, self.contentView.fs_height);
-        x = CGRectGetMaxX(label.frame);
+        x += width;
     }
     free(widths);
 }
@@ -99,17 +95,40 @@
 - (void)configureAppearance
 {
     BOOL useVeryShortWeekdaySymbols = (self.calendar.appearance.caseOptions & (15<<4) ) == FSCalendarCaseOptionsWeekdayUsesSingleUpperCase;
-    NSArray *weekdaySymbols = useVeryShortWeekdaySymbols ? self.calendar.gregorian.veryShortStandaloneWeekdaySymbols : self.calendar.gregorian.shortStandaloneWeekdaySymbols;
+    NSArray *weekdaySyms = useVeryShortWeekdaySymbols ? self.calendar.gregorian.veryShortStandaloneWeekdaySymbols : self.calendar.gregorian.shortStandaloneWeekdaySymbols;
+    NSMutableArray *weekdaySymbols = [NSMutableArray.alloc initWithArray:weekdaySyms];
     BOOL useDefaultWeekdayCase = (self.calendar.appearance.caseOptions & (15<<4) ) == FSCalendarCaseOptionsWeekdayUsesDefaultCase;
     
+    NSInteger firstWeek = self.calendar.firstWeekday;
+    BOOL isRtl = [_calendar.calendarIdentifier isRTLCalendar] && [_calendar.locale isRtlLocale];
+    if (isRtl && [_calendar.locale.localeIdentifier isEqualToString:@"fa-IR"]) {
+        NSString *last = weekdaySymbols.lastObject;
+        [weekdaySymbols removeObject:last];
+        [weekdaySymbols insertObject:last atIndex:0];
+        
+        NSString *last1 = weekdaySymbols.lastObject;
+        [weekdaySymbols removeObject:last1];
+        [weekdaySymbols insertObject:last1 atIndex:0];
+        
+        weekdaySymbols = [[[weekdaySymbols reverseObjectEnumerator] allObjects] mutableCopy];
+    }
     for (NSInteger i = 0; i < self.weekdayPointers.count; i++) {
-        NSInteger index = (i + self.calendar.firstWeekday-1) % 7;
+        NSInteger index = (i + firstWeek-1) % 7;
         UILabel *label = [self.weekdayPointers pointerAtIndex:i];
         label.font = self.calendar.appearance.weekdayFont;
         label.textColor = self.calendar.appearance.weekdayTextColor;
         label.text = useDefaultWeekdayCase ? weekdaySymbols[index] : [weekdaySymbols[index] uppercaseString];
+        
+        if (isRtl) {
+            if (self.calendar.pagingEnabled) {
+                label.accessibilityLanguage = @"Persian";
+                [label setTransform:CGAffineTransformMakeScale(-1,1)];
+            }
+        } else if ([label.accessibilityLanguage isEqualToString:@"Persian"]) {
+            label.accessibilityLanguage = @"English";
+            [label setTransform:CGAffineTransformMakeScale(-1,1)];
+        }
     }
-
 }
 
 @end

@@ -12,7 +12,6 @@
 #import "FSCalendarCollectionView.h"
 #import "FSCalendarExtensions.h"
 #import "FSCalendarConstants.h"
-#import "FSCalendarSeparatorDecorationView.h"
 
 #define kFSCalendarSeparatorInterRows @"FSCalendarSeparatorInterRows"
 #define kFSCalendarSeparatorInterColumns @"FSCalendarSeparatorInterColumns"
@@ -33,7 +32,6 @@
 
 @property (assign, nonatomic) CGSize contentSize;
 @property (assign, nonatomic) CGSize collectionViewSize;
-@property (assign, nonatomic) CGSize headerReferenceSize;
 @property (assign, nonatomic) NSInteger numberOfSections;
 
 @property (assign, nonatomic) FSCalendarSeparators separators;
@@ -43,7 +41,6 @@
 @property (strong, nonatomic) NSMutableDictionary<NSIndexPath *, UICollectionViewLayoutAttributes *> *rowSeparatorAttributes;
 
 - (void)didReceiveNotifications:(NSNotification *)notification;
-- (CGFloat)calculateRowOffset:(NSInteger)row totalRows:(NSInteger)totalRows;
 
 @end
 
@@ -67,14 +64,14 @@
         self.scrollDirection = UICollectionViewScrollDirectionHorizontal;
         self.sectionInsets = UIEdgeInsetsMake(5, 0, 5, 0);
         
-        self.itemAttributes = NSMutableDictionary.dictionary;
-        self.headerAttributes = NSMutableDictionary.dictionary;
-        self.rowSeparatorAttributes = NSMutableDictionary.dictionary;
+        self.itemAttributes = [NSMutableDictionary dictionary];
+        self.headerAttributes = [NSMutableDictionary dictionary];
+        self.rowSeparatorAttributes = [NSMutableDictionary dictionary];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveNotifications:) name:UIDeviceOrientationDidChangeNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveNotifications:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
         
-        [self registerClass:FSCalendarSeparatorDecorationView.class forDecorationViewOfKind:kFSCalendarSeparatorInterRows];
+        [self registerClass:[FSCalendarSeparator class] forDecorationViewOfKind:kFSCalendarSeparatorInterRows];
     }
     return self;
 }
@@ -407,26 +404,21 @@
     FSCalendarCoordinate coordinate = [self.calendar.calculator coordinateForIndexPath:indexPath];
     NSInteger column = coordinate.column;
     NSInteger row = coordinate.row;
-    NSInteger numberOfRows = [self.calendar.calculator numberOfRowsInSection:indexPath.section];
     UICollectionViewLayoutAttributes *attributes = self.itemAttributes[indexPath];
     if (!attributes) {
         attributes = [UICollectionViewLayoutAttributes layoutAttributesForCellWithIndexPath:indexPath];
         CGRect frame = ({
-            CGFloat width = self.widths[column];
-            CGFloat height = self.heights[row];
             CGFloat x, y;
             switch (self.scrollDirection) {
                 case UICollectionViewScrollDirectionHorizontal: {
                     x = self.lefts[column] + indexPath.section * self.collectionView.fs_width;
-                    y = [self calculateRowOffset:row totalRows:numberOfRows];
+                    y = self.tops[row];
                     break;
                 }
                 case UICollectionViewScrollDirectionVertical: {
                     x = self.lefts[column];
                     if (!self.calendar.floatingMode) {
-                        CGFloat sectionTop = indexPath.section * self.collectionView.fs_height;
-                        CGFloat rowOffset = [self calculateRowOffset:row totalRows:numberOfRows];
-                        y = sectionTop + rowOffset;
+                        y = self.tops[row] + indexPath.section * self.collectionView.fs_height;
                     } else {
                         y = self.sectionTops[indexPath.section] + self.headerReferenceSize.height + self.tops[row];
                     }
@@ -435,6 +427,8 @@
                 default:
                     break;
             }
+            CGFloat width = self.widths[column];
+            CGFloat height = self.heights[row];
             CGRect frame = CGRectMake(x, y, width, height);
             frame;
         });
@@ -472,16 +466,15 @@
             attributes = [UICollectionViewLayoutAttributes layoutAttributesForDecorationViewOfKind:kFSCalendarSeparatorInterRows withIndexPath:indexPath];
             CGFloat x, y;
             if (!self.calendar.floatingMode) {
-                CGFloat rowOffset = [self calculateRowOffset:coordinate.row totalRows:[self.calendar.calculator numberOfRowsInSection:indexPath.section]] + self.heights[coordinate.row];
                 switch (self.scrollDirection) {
                     case UICollectionViewScrollDirectionHorizontal: {
                         x = self.lefts[coordinate.column] + indexPath.section * self.collectionView.fs_width;
-                        y = rowOffset;
+                        y = self.tops[coordinate.row]+self.heights[coordinate.row];
                         break;
                     }
                     case UICollectionViewScrollDirectionVertical: {
                         x = 0;
-                        y = indexPath.section * self.collectionView.fs_height + rowOffset;
+                        y = self.tops[coordinate.row]+self.heights[coordinate.row] + indexPath.section * self.collectionView.fs_height;
                         break;
                     }
                     default:
@@ -500,11 +493,6 @@
         return attributes;
     }
     return nil;
-}
-
-- (BOOL)flipsHorizontallyInOppositeLayoutDirection
-{
-    return YES;
 }
 
 #pragma mark - Notifications
@@ -532,25 +520,6 @@
 }
 
 #pragma mark - Private functions
-
-- (CGFloat)calculateRowOffset:(NSInteger)row totalRows:(NSInteger)totalRows
-{
-    if (self.calendar.adjustsBoundingRectWhenChangingMonths) {
-        return self.tops[row];
-    }
-    CGFloat height = self.heights[row];
-    switch (totalRows) {
-        case 4:
-        case 5: {
-            CGFloat contentHeight = self.collectionView.fs_height - self.sectionInsets.top - self.sectionInsets.bottom;
-            CGFloat rowSpan = contentHeight/totalRows;
-            return (row + 0.5) * rowSpan - height * 0.5 + self.sectionInsets.top;
-        }
-        case 6:
-        default:
-            return self.tops[row];
-    }
-}
 
 - (NSInteger)searchStartSection:(CGRect)rect :(NSInteger)left :(NSInteger)right
 {

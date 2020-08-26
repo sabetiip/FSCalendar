@@ -5,7 +5,7 @@
 //  Created by Wenchao Ding on 29/1/15.
 //  Copyright © 2016 Wenchao Ding. All rights reserved.
 // 
-//  https://github.com/WenchaoD
+//  https://github.com/Husseinhj
 //
 //  FSCalendar is a superior awesome calendar control with high performance, high customizablility and very simple usage.
 //
@@ -102,6 +102,11 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (NSInteger)calendar:(FSCalendar *)calendar numberOfEventsForDate:(NSDate *)date;
 
+/**
+ * This function is deprecated
+ */
+- (BOOL)calendar:(FSCalendar *)calendar hasEventForDate:(NSDate *)date FSCalendarDeprecated(-calendar:numberOfEventsForDate:);
+
 @end
 
 
@@ -147,6 +152,15 @@ NS_ASSUME_NONNULL_BEGIN
  Tells the delegate the calendar is about to change the current page.
  */
 - (void)calendarCurrentPageDidChange:(FSCalendar *)calendar;
+
+/**
+ These functions are deprecated
+ */
+- (void)calendarCurrentScopeWillChange:(FSCalendar *)calendar animated:(BOOL)animated FSCalendarDeprecated(-calendar:boundingRectWillChange:animated:);
+- (void)calendarCurrentMonthDidChange:(FSCalendar *)calendar FSCalendarDeprecated(-calendarCurrentPageDidChange:);
+- (BOOL)calendar:(FSCalendar *)calendar shouldSelectDate:(NSDate *)date FSCalendarDeprecated(-calendar:shouldSelectDate:atMonthPosition:);- (void)calendar:(FSCalendar *)calendar didSelectDate:(NSDate *)date FSCalendarDeprecated(-calendar:didSelectDate:atMonthPosition:);
+- (BOOL)calendar:(FSCalendar *)calendar shouldDeselectDate:(NSDate *)date FSCalendarDeprecated(-calendar:shouldDeselectDate:atMonthPosition:);
+- (void)calendar:(FSCalendar *)calendar didDeselectDate:(NSDate *)date FSCalendarDeprecated(-calendar:didDeselectDate:atMonthPosition:);
 
 @end
 
@@ -235,12 +249,23 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (CGFloat)calendar:(FSCalendar *)calendar appearance:(FSCalendarAppearance *)appearance borderRadiusForDate:(NSDate *)date;
 
+/**
+ * These functions are deprecated
+ */
+- (nullable UIColor *)calendar:(FSCalendar *)calendar appearance:(FSCalendarAppearance *)appearance fillColorForDate:(NSDate *)date FSCalendarDeprecated(-calendar:appearance:fillDefaultColorForDate:);
+- (nullable UIColor *)calendar:(FSCalendar *)calendar appearance:(FSCalendarAppearance *)appearance selectionColorForDate:(NSDate *)date FSCalendarDeprecated(-calendar:appearance:fillSelectionColorForDate:);
+- (nullable UIColor *)calendar:(FSCalendar *)calendar appearance:(FSCalendarAppearance *)appearance eventColorForDate:(NSDate *)date FSCalendarDeprecated(-calendar:appearance:eventDefaultColorsForDate:);
+- (nullable NSArray *)calendar:(FSCalendar *)calendar appearance:(FSCalendarAppearance *)appearance eventColorsForDate:(NSDate *)date FSCalendarDeprecated(-calendar:appearance:eventDefaultColorsForDate:);
+- (FSCalendarCellShape)calendar:(FSCalendar *)calendar appearance:(FSCalendarAppearance *)appearance cellShapeForDate:(NSDate *)date FSCalendarDeprecated(-calendar:appearance:borderRadiusForDate:);
 @end
 
 #pragma mark - Primary
 
 IB_DESIGNABLE
 @interface FSCalendar : UIView
+
+@property (assign, nonatomic) IBInspectable CGFloat x;
+@property (assign, nonatomic) IBInspectable CGFloat y;
 
 /**
  * The object that acts as the delegate of the calendar.
@@ -272,6 +297,8 @@ IB_DESIGNABLE
  *    calendar.locale = [NSLocale localeWithLocaleIdentifier:@"zh-CN"];
  */
 @property (copy, nonatomic) NSLocale *locale;
+
+@property (strong, nonatomic) NSString *calendarIdentifier;
 
 /**
  * The scroll direction of FSCalendar. 
@@ -320,7 +347,11 @@ IB_DESIGNABLE
  *
  *    calendar.placeholderType = FSCalendarPlaceholderTypeNone;
  */
+#if TARGET_INTERFACE_BUILDER
+@property (assign, nonatomic) IBInspectable NSUInteger placeholderType;
+#else
 @property (assign, nonatomic) FSCalendarPlaceholderType placeholderType;
+#endif
 
 /**
  The index of the first weekday of the calendar. Give a '2' to make Monday in the first column.
@@ -358,11 +389,6 @@ IB_DESIGNABLE
 @property (assign, nonatomic) IBInspectable BOOL allowsMultipleSelection;
 
 /**
- A Boolean value that determines whether the bounding rect changes when the displayed month of the calendar is changed.
- */
-@property (assign, nonatomic) IBInspectable BOOL adjustsBoundingRectWhenChangingMonths;
-
-/**
  A Boolean value that determines whether paging is enabled for the calendar.
  */
 @property (assign, nonatomic) IBInspectable BOOL pagingEnabled;
@@ -371,6 +397,22 @@ IB_DESIGNABLE
  A Boolean value that determines whether scrolling is enabled for the calendar.
  */
 @property (assign, nonatomic) IBInspectable BOOL scrollEnabled;
+
+/**
+ A Boolean value that determines whether the calendar should show a handle for control the scope. Default is NO;
+ 
+ @deprecated Use -handleScopeGesture: instead
+ 
+ e.g.
+ 
+    UIPanGestureRecognizer *scopeGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self.calendar action:@selector(handleScopeGesture:)];
+    scopeGesture.delegate = ...
+    [anyOtherView addGestureRecognizer:scopeGesture];
+ 
+ @see FSCalendarScopeExample
+ 
+ */
+@property (assign, nonatomic) IBInspectable BOOL showsScopeHandle FSCalendarDeprecated(handleScopeGesture:);
 
 /**
  The row height of the calendar if paging enabled is NO.;
@@ -562,3 +604,4 @@ IB_DESIGNABLE
 @end
 
 NS_ASSUME_NONNULL_END
+

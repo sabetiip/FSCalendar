@@ -5,7 +5,7 @@
 //  Created by DingWenchao on 6/29/15.
 //  Copyright © 2016 Wenchao Ding. All rights reserved.
 //
-//  https://github.com/WenchaoD
+//  https://github.com/Husseinhj
 //
 
 #import "FSCalendarAppearance.h"
@@ -480,24 +480,34 @@
     return self.eventDefaultColor;
 }
 
+- (void)setCellShape:(FSCalendarCellShape)cellShape
+{
+    self.borderRadius = 1-cellShape;
+}
+
+- (FSCalendarCellShape)cellShape
+{
+    return self.borderRadius==1.0?FSCalendarCellShapeCircle:FSCalendarCellShapeRectangle;
+}
+
 - (void)setTitleTextSize:(CGFloat)titleTextSize
 {
-    self.titleFont = [self.titleFont fontWithSize:titleTextSize];
+    self.titleFont = [UIFont fontWithName:self.titleFont.fontName size:titleTextSize];
 }
 
 - (void)setSubtitleTextSize:(CGFloat)subtitleTextSize
 {
-    self.subtitleFont = [self.subtitleFont fontWithSize:subtitleTextSize];
+    self.subtitleFont = [UIFont fontWithName:self.subtitleFont.fontName size:subtitleTextSize];
 }
 
 - (void)setWeekdayTextSize:(CGFloat)weekdayTextSize
 {
-    self.weekdayFont = [self.weekdayFont fontWithSize:weekdayTextSize];
+    self.weekdayFont = [UIFont fontWithName:self.weekdayFont.fontName size:weekdayTextSize];
 }
 
 - (void)setHeaderTitleTextSize:(CGFloat)headerTitleTextSize
 {
-    self.headerTitleFont = [self.headerTitleFont fontWithSize:headerTitleTextSize];
+    self.headerTitleFont = [UIFont fontWithName:self.headerTitleFont.fontName size:headerTitleTextSize];
 }
 
 - (void)invalidateAppearance
@@ -505,5 +515,9 @@
     [self.calendar configureAppearance];
 }
 
+- (void)setAdjustsFontSizeToFitContentSize:(BOOL)adjustsFontSizeToFitContentSize {}
+- (BOOL)adjustsFontSizeToFitContentSize { return YES; }
+
 @end
+
 

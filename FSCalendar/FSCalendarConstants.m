@@ -5,7 +5,7 @@
 //  Created by dingwenchao on 8/28/15.
 //  Copyright © 2016 Wenchao Ding. All rights reserved.
 //
-//  https://github.com/WenchaoD
+//  https://github.com/Husseinhj
 //
 
 #import "FSCalendarConstants.h"
@@ -24,9 +24,9 @@ CGFloat const FSCalendarStandardSubtitleTextSize = 10;
 CGFloat const FSCalendarStandardWeekdayTextSize = 14;
 CGFloat const FSCalendarStandardHeaderTextSize = 16.5;
 CGFloat const FSCalendarMaximumEventDotDiameter = 4.8;
+CGFloat const FSCalendarStandardScopeHandleHeight = 26;
 
 NSInteger const FSCalendarDefaultHourComponent = 0;
-NSInteger const FSCalendarMaximumNumberOfEvents = 3;
 
 NSString * const FSCalendarDefaultCellReuseIdentifier = @"_FSCalendarDefaultCellReuseIdentifier";
 NSString * const FSCalendarBlankCellReuseIdentifier = @"_FSCalendarBlankCellReuseIdentifier";
